@@ -1547,103 +1547,9 @@ function App() {
         </div>
       </section>
 
-      {/* Booking Advisory Section */}
-      <section id="booking" className="booking-hero-section bg-alt">
-        {/* Ambient Glow Orbs */}
-        <div className="booking-glow-container">
-          <div className="booking-glow-orb orb-1"></div>
-          <div className="booking-glow-orb orb-2"></div>
-        </div>
-
-        <div className="container">
-          <div className="booking-hero-panel">
-            <div className="booking-hero-header">
-              <span className="badge">Advisory Call</span>
-              <h2 className="booking-title">Let's Solve Your Next Business Challenge</h2>
-              <p className="booking-subtitle">
-                Whether you're planning a digital transformation initiative, implementing AI, modernizing enterprise systems, or optimizing operations, our experts are ready to help.
-              </p>
-            </div>
-
-            {consultationSubmitted ? (
-              <div className="form-success-overlay">
-                <div className="success-icon-box">
-                  <Check size={20} />
-                </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Consultation Scheduled</h3>
-                <p style={{ fontSize: '14px', color: 'var(--secondary-text)' }}>A calendar invitation and strategy agenda has been sent to your business email. We look forward to talking.</p>
-              </div>
-            ) : (
-              <form className="booking-form-grid" onSubmit={handleConsultationSubmit}>
-                <div className="form-grid-row">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="consult-name">Full Name</label>
-                    <input
-                      type="text"
-                      id="consult-name"
-                      className="form-input"
-                      required
-                      placeholder="Jane Doe"
-                      value={consultationForm.name}
-                      onChange={(e) => setConsultationForm({ ...consultationForm, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="consult-email">Work Email</label>
-                    <input
-                      type="email"
-                      id="consult-email"
-                      className="form-input"
-                      required
-                      placeholder="jane@company.com"
-                      value={consultationForm.email}
-                      onChange={(e) => setConsultationForm({ ...consultationForm, email: e.target.value })}
-                    />
-                  </div>
-                </div>
-                
-                <div className="form-grid-row">
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="consult-company">Company Name</label>
-                    <input
-                      type="text"
-                      id="consult-company"
-                      className="form-input"
-                      required
-                      placeholder="Enterprise Corp"
-                      value={consultationForm.company}
-                      onChange={(e) => setConsultationForm({ ...consultationForm, company: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="consult-challenge">Primary Focus</label>
-                    <select
-                      id="consult-challenge"
-                      className="form-input form-select"
-                      value={consultationForm.challenge}
-                      onChange={(e) => setConsultationForm({ ...consultationForm, challenge: e.target.value })}
-                    >
-                      <option value="Software Development">Software Development</option>
-                      <option value="SAP Integration">SAP Integration</option>
-                      <option value="Data Science & AI">Data Science & AI</option>
-                      <option value="IoT Solutions">IoT Solutions</option>
-                      <option value="Business Process Management">Process Optimization</option>
-                    </select>
-                  </div>
-                </div>
-
-                <button type="submit" className="btn btn-primary btn-xl" disabled={consultationLoading}>
-                  {consultationLoading ? "Securing Timeslots..." : "Book Free Strategy Consultation"}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA Section */}
       <section className="final-cta-section" id="final-cta">
-        <div className="container final-cta-content reveal-element">
+        <div className="container final-cta-content">
           <span className="badge"><Award size={12} /> Ready to Transform</span>
           <h2 className="final-cta-headline">Build The Future Of Your Business</h2>
           <p className="final-cta-supporting">
@@ -1699,7 +1605,6 @@ function App() {
                 <li><a href="#why-us" className="footer-link">About AxionSphere</a></li>
                 <li><a href="#process" className="footer-link">Transformation Process</a></li>
                 <li><a href="#case-studies" className="footer-link">Featured Proof</a></li>
-                <li><a href="#booking" className="footer-link">Contact Advisory</a></li>
               </ul>
             </div>
           </div>
