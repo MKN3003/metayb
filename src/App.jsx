@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Globe,
   Cpu,
@@ -6,13 +6,11 @@ import {
   Settings,
   Shield,
   TrendingUp,
-  ArrowRight,
   Check,
   Sun,
   Moon,
   Menu,
   X,
-  ChevronRight,
   AlertTriangle,
   Clock,
   Database,
@@ -25,23 +23,27 @@ import {
   Users,
   CheckCircle2,
   FileText,
-  User,
   Briefcase,
-  Building,
   TrendingDown,
   LineChart,
-  HardDrive
+  HardDrive,
+  Mail,
+  MessageSquare,
+  GitBranch,
+  Video,
+  Radio,
+  CheckSquare
 } from 'lucide-react'
 
 // Mock Data for AI Readiness Assessment
 const ASSESSMENT_QUESTIONS = [
   {
     id: 1,
-    question: "How would you describe your company's current data integration?",
+    question: "How is your company's data currently integrated?",
     options: [
       { text: "Highly disconnected. Siloed teams and software systems.", points: 10 },
       { text: "Partially connected. Some central reports but manual sharing.", points: 20 },
-      { text: "Fully integrated. Single source of truth with APIs.", points: 30 }
+      { text: "Fully integrated. Single source of truth with API connections.", points: 30 }
     ]
   },
   {
@@ -64,11 +66,11 @@ const ASSESSMENT_QUESTIONS = [
   },
   {
     id: 4,
-    question: "What is your current infrastructure capabilities for IoT and Edge Systems?",
+    question: "What are your current infrastructure capabilities for IoT systems?",
     options: [
       { text: "None. No active data streaming from devices or assets.", points: 10 },
       { text: "Limited. We collect sensor logs but don't action them dynamically.", points: 20 },
-      { text: "Advanced. Real-time telemetry feeding into predictive maintenance loops.", points: 30 }
+      { text: "Advanced. Real-time telemetry feeding into predictive loops.", points: 30 }
     ]
   }
 ]
@@ -86,11 +88,26 @@ function App() {
 
   // Sticky Navigation Scrolled State
   const [scrolled, setScrolled] = useState(false)
+
   // Mobile Nav Drawer Toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Interactive Hero Dashboard State
+  const [task1Completed, setTask1Completed] = useState(false)
+  const [task2Completed, setTask2Completed] = useState(false)
+  const [task3Completed, setTask3Completed] = useState(false)
+
+  // AI Assistant Chat Messages (Hero Mockup)
+  const [chatLog, setChatLog] = useState([
+    { sender: 'agent', text: "Axion AI online. Ready to manage enterprise data ingestion." }
+  ])
+
   // Before & After Active Tab
   const [beforeAfterTab, setBeforeAfterTab] = useState('disconnected')
+
+  // Services Interactive Category Filter
+  const [activeServiceFilter, setActiveServiceFilter] = useState('all')
+  const [activeCapability, setActiveCapability] = useState(0)
 
   // AI Assessment State
   const [assessmentStep, setAssessmentStep] = useState(0) // 0: intro, 1-4: questions, 5: dashboard results
@@ -116,18 +133,45 @@ function App() {
     size: '100-500'
   })
 
+  // Booking Modal States
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false)
+  const [bookingModalType, setBookingModalType] = useState('consultation')
+
+  // Toggle tasks helper with AI Chat logs reaction
+  const toggleTask = (taskNum, taskName, isCompleted, setCompleted) => {
+    setCompleted(!isCompleted)
+    const actionText = !isCompleted ? `Triggered: ${taskName}` : `Disabled: ${taskName}`
+
+    let responseText = ""
+    if (taskNum === 1) {
+      responseText = !isCompleted
+        ? "Axion AI: SAP integration pipeline activated. Real-time data synchronization validated. Latency: 14ms."
+        : "Axion AI: SAP ERP Ledger Sync paused. Real-time logging standby."
+    } else if (taskNum === 2) {
+      responseText = !isCompleted
+        ? "Axion AI: Neural demand forecasting model run complete. Outputs published to central inventory ledger."
+        : "Axion AI: Prediction model pipeline reset."
+    } else if (taskNum === 3) {
+      responseText = !isCompleted
+        ? "Axion AI: Cold-chain IoT diagnostics verified. Active telemetry streaming at 3.8°C (Optimal)."
+        : "Axion AI: Sensor checks standby. Monitoring loop disabled."
+    }
+
+    setChatLog(prev => [
+      ...prev,
+      { sender: 'user', text: actionText },
+      { sender: 'agent', text: responseText }
+    ])
+  }
+
   // Scroll Reveal Observer Setup
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true)
-      } else {
-        setScrolled(false)
-      }
+      setScrolled(window.scrollY > 40)
     }
     window.addEventListener('scroll', handleScroll)
 
-    // Intersection Observer for slide reveal animations
+    // Intersection Observer for scroll animations
     const revealElements = document.querySelectorAll('.reveal-element')
     const observer = new IntersectionObserver(
       (entries) => {
@@ -137,7 +181,7 @@ function App() {
           }
         })
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -30px 0px' }
     )
 
     revealElements.forEach((el) => observer.observe(el))
@@ -185,10 +229,9 @@ function App() {
       Object.keys(assessmentAnswers).forEach(qId => {
         total += assessmentAnswers[qId].points
       })
-      // Max score is 120 (4 questions * 30 points). Map to 100 percentage.
       const percentage = Math.round((total / 120) * 100)
       setRadialScore(percentage)
-      setAssessmentStep(5) // Show results
+      setAssessmentStep(5)
     }
   }
 
@@ -198,7 +241,7 @@ function App() {
     setRadialScore(0)
   }
 
-  // Form handlers
+  // Form Handlers
   const handleConsultationSubmit = (e) => {
     e.preventDefault()
     if (!consultationForm.name || !consultationForm.email) return
@@ -206,7 +249,7 @@ function App() {
     setTimeout(() => {
       setConsultationLoading(false)
       setConsultationSubmitted(true)
-    }, 1500)
+    }, 1200)
   }
 
   const handleDemoSubmit = (e) => {
@@ -216,11 +259,46 @@ function App() {
     setTimeout(() => {
       setDemoLoading(false)
       setDemoSubmitted(true)
-    }, 1500)
+    }, 1200)
   }
 
-  // Radial calculation helper
-  const strokeDashoffset = 440 - (440 * radialScore) / 100
+  // Filter Services Logic
+  const SERVICES = [
+    {
+      category: 'dev',
+      title: "Software Development",
+      desc: "Build scalable digital platforms, enterprise applications, and cloud-native solutions designed for long-term growth.",
+      outcomes: ["High-performance platforms", "Modern cloud architecture"]
+    },
+    {
+      category: 'integration',
+      title: "SAP Integration",
+      desc: "Connect business functions into a unified ecosystem that improves visibility and operational efficiency.",
+      outcomes: ["Unified central ledger", "Ecosystem data visibility"]
+    },
+    {
+      category: 'data',
+      title: "Data Science & AI",
+      desc: "Transform raw data into actionable intelligence using predictive analytics, machine learning, and AI-driven automation.",
+      outcomes: ["Predictive intelligence", "AI automated operations"]
+    },
+    {
+      category: 'data',
+      title: "IoT Solutions",
+      desc: "Monitor, analyze, and optimize operations through connected devices and real-time data ecosystems.",
+      outcomes: ["Real-time asset telemetry", "Connected operations logs"]
+    },
+    {
+      category: 'integration',
+      title: "Business Process Management",
+      desc: "Reduce manual effort and streamline workflows through intelligent automation and process optimization.",
+      outcomes: ["Error reduction", "Optimal task workflows"]
+    }
+  ]
+
+  const filteredServices = activeServiceFilter === 'all'
+    ? SERVICES
+    : SERVICES.filter(s => s.category === activeServiceFilter)
 
   return (
     <>
@@ -237,26 +315,31 @@ function App() {
             <a href="#industries" className="nav-link">Industries</a>
             <a href="#why-us" className="nav-link">About</a>
             <a href="#process" className="nav-link">Process</a>
-            <a href="#case-studies" className="nav-link">Case Studies</a>
-            <a href="#readiness" className="nav-link">AI Assessment</a>
           </nav>
 
           <div className="nav-actions">
-            <button 
-              className="theme-toggle" 
-              onClick={toggleTheme} 
+            <button
+              className="theme-toggle"
+              onClick={toggleTheme}
               aria-label="Toggle theme mode"
+              style={{ marginRight: '0.25rem' }}
             >
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
             </button>
-            <a href="#booking" className="btn btn-primary nav-links">Book Consultation</a>
-
             <button 
-              className="mobile-menu-btn" 
+              onClick={() => { setBookingModalType('consultation'); setIsBookingModalOpen(true); }} 
+              className="btn btn-primary nav-links" 
+              style={{ borderRadius: '6px' }}
+            >
+              Book Consultation
+            </button>
+
+            <button
+              className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open mobile menu"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </button>
           </div>
         </div>
@@ -269,12 +352,12 @@ function App() {
             <div className="logo-sphere"></div>
             <span>AxionSphere</span>
           </a>
-          <button 
-            className="mobile-menu-btn" 
+          <button
+            className="mobile-menu-btn"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close mobile menu"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
@@ -288,219 +371,462 @@ function App() {
         </nav>
 
         <div className="mobile-nav-actions">
-          <a href="#booking" className="btn btn-primary" onClick={() => setMobileMenuOpen(false)}>Book Consultation</a>
-          <a href="#demo" className="btn btn-secondary" onClick={() => setMobileMenuOpen(false)}>Request Demo</a>
+          <button 
+            onClick={() => { setBookingModalType('consultation'); setIsBookingModalOpen(true); setMobileMenuOpen(false); }} 
+            className="btn btn-primary"
+            style={{ width: '100%' }}
+          >
+            Book Consultation
+          </button>
+          <button 
+            onClick={() => { setBookingModalType('demo'); setIsBookingModalOpen(true); setMobileMenuOpen(false); }} 
+            className="btn btn-secondary"
+            style={{ width: '100%', marginTop: '0.5rem' }}
+          >
+            Request Demo
+          </button>
         </div>
       </div>
 
-      {/* Section 1: Hero Section */}
+      {/* Centered Hero Section (Akiflow Style Interface but AxionSphere Content) */}
       <section className="hero-section" id="hero">
-        <div className="container hero-grid">
+        <div className="container">
           <div className="hero-content reveal-element reveal-delay-1">
             <span className="badge">
-              <Zap size={14} /> Enterprise AI & Digital Transformation
+              Enterprise AI & Digital Transformation
             </span>
-            <h1 className="hero-headline text-gradient">
-              Transform Enterprise Complexity Into Intelligent Growth
+            <h1 className="hero-headline">
+              Transform Enterprise Complexity <br />
+              <span style={{ color: 'var(--accent)' }}>Into Intelligent Growth</span>
             </h1>
             <p className="hero-supporting">
               AxionSphere helps enterprises modernize operations, automate workflows, unlock business intelligence, and accelerate digital transformation through AI, Software Engineering, SAP Integration, and IoT solutions.
             </p>
             <div className="hero-ctas">
-              <a href="#booking" className="btn btn-primary">Book Consultation</a>
-              <a href="#demo" className="btn btn-secondary">Request Demo</a>
+              <button onClick={() => { setBookingModalType('consultation'); setIsBookingModalOpen(true); }} className="btn btn-primary">Book a Consultation</button>
+              <button onClick={() => { setBookingModalType('demo'); setIsBookingModalOpen(true); }} className="btn btn-secondary">Request a Demo</button>
             </div>
           </div>
 
           <div className="hero-visual-wrapper reveal-element reveal-delay-2">
-            <div className="globe-container">
-              {/* Central orbiting globe visualization */}
-              <div className="globe-orbit orbit-1">
-                <div className="globe-node node-1"></div>
-                <div className="globe-node node-2"></div>
-              </div>
-              <div className="globe-orbit orbit-2">
-                <div className="globe-node node-3"></div>
-                <div className="globe-node node-4"></div>
-              </div>
-              <div className="globe-sphere-3d">
-                <Globe size={100} strokeWidth={1} color="var(--accent)" />
+            {/* Curved Floating Integration Badges */}
+            <div className="floating-badge fb-1" title="Slack Integration">
+              <MessageSquare size={12} />
+            </div>
+            <div className="floating-badge fb-2" title="Email Alerts">
+              <Mail size={12} />
+            </div>
+            <div className="floating-badge fb-3" title="GitHub Sync">
+              <GitBranch size={12} />
+            </div>
+            <div className="floating-badge fb-4" title="Process Streams">
+              <Video size={12} />
+            </div>
+            <div className="floating-badge fb-5" title="SAP Database Connector">
+              <Database size={12} />
+            </div>
+
+            {/* High-Fidelity Workspace Mockup Dashboard (Enterprise Operations Hub) */}
+            <div className="workspace-window">
+              <div className="window-header">
+                <div className="window-dots">
+                  <span className="window-dot window-dot-red"></span>
+                  <span className="window-dot window-dot-yellow"></span>
+                  <span className="window-dot window-dot-green"></span>
+                </div>
+                <span className="window-title">AXIONSPHERE ENTERPRISE OPERATIONS HUB</span>
+                <div style={{ width: '30px' }}></div>
               </div>
 
-              {/* Floating dashboards (Apple/SaaS style glass windows) */}
-              <div className="floating-glass-card card-ai-agent">
-                <div className="glass-card-header">
-                  <span className="dot-pulse"></span>
-                  <span>AI Agent Status</span>
-                </div>
-                <span className="glass-card-title">SAP Sync Operations</span>
-                <span className="glass-card-value">Active</span>
-              </div>
+              <div className="workspace-layout">
+                {/* 1. Sidebar - Data Stream Pipelines */}
+                <div className="workspace-sidebar">
+                  <span className="sidebar-title">Data Ingestion Streams</span>
 
-              <div className="floating-glass-card card-workflow">
-                <div className="glass-card-header">
-                  <Activity size={12} />
-                  <span>Optimization</span>
-                </div>
-                <span className="glass-card-title">Process Efficiency</span>
-                <span className="glass-card-value">+40%</span>
-              </div>
+                  <div
+                    className={`inbox-item ${task1Completed ? 'completed' : ''}`}
+                    onClick={() => toggleTask(1, 'SAP ERP Ledger Sync', task1Completed, setTask1Completed)}
+                    title="Toggle SAP Integration Sync"
+                  >
+                    <span>SAP ERP Ledger Sync</span>
+                    {task1Completed ? <CheckCircle2 size={10} color="#10b981" /> : <Clock size={10} />}
+                  </div>
 
-              <div className="floating-glass-card card-metrics">
-                <div className="glass-card-header">
-                  <Cpu size={12} />
-                  <span>Telemetry Loop</span>
+                  <div
+                    className={`inbox-item ${task2Completed ? 'completed' : ''}`}
+                    onClick={() => toggleTask(2, 'AI Demand Pipeline', task2Completed, setTask2Completed)}
+                    title="Toggle AI Forecast Node"
+                  >
+                    <span>AI Demand Pipeline</span>
+                    {task2Completed ? <CheckCircle2 size={10} color="#10b981" /> : <Clock size={10} />}
+                  </div>
+
+                  <div
+                    className={`inbox-item ${task3Completed ? 'completed' : ''}`}
+                    onClick={() => toggleTask(3, 'IoT Telemetry Flow', task3Completed, setTask3Completed)}
+                    title="Toggle IoT Telemetry Check"
+                  >
+                    <span>IoT Telemetry Flow</span>
+                    {task3Completed ? <CheckCircle2 size={10} color="#10b981" /> : <Clock size={10} />}
+                  </div>
                 </div>
-                <span className="glass-card-title">Active IoT Nodes</span>
-                <span className="glass-card-value">12.4K</span>
+
+                {/* 2. Process Telemetry and Status tracks */}
+                <div className="workspace-body">
+                  <div className="calendar-header">
+                    <span>Active Digital Infrastructure</span>
+                    <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Telemetry Monitor</span>
+                  </div>
+
+                  <div className="calendar-grid">
+                    <div className="calendar-col">
+                      <span className="calendar-day-label">SAP Integration</span>
+                      {!task1Completed && <div className="calendar-event">SAP Ledger Live</div>}
+                      <div className="calendar-event" style={{ backgroundColor: 'rgba(109, 40, 217, 0.04)', borderLeftColor: 'var(--accent-secondary)' }}>Status: Connected</div>
+                    </div>
+
+                    <div className="calendar-col">
+                      <span className="calendar-day-label">AI Forecasting</span>
+                      {!task2Completed && <div className="calendar-event" style={{ borderLeftColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.04)' }}>Demand Predictor</div>}
+                      <div className="calendar-event" style={{ backgroundColor: 'rgba(109, 40, 217, 0.04)', borderLeftColor: 'var(--accent-secondary)' }}>Accuracy: 96.8%</div>
+                    </div>
+
+                    <div className="calendar-col">
+                      <span className="calendar-day-label">IoT Operations</span>
+                      {!task3Completed && <div className="calendar-event" style={{ borderLeftColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.04)' }}>Cold-Chain Stream</div>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Right Pane - Axion AI chat feedback */}
+                <div className="workspace-mobile-pane">
+                  <div className="phone-mockup">
+                    <div className="phone-header">
+                      <span>9:41</span>
+                      <span>Axion AI</span>
+                      <span>100%</span>
+                    </div>
+                    <div className="phone-body">
+                      {chatLog.map((msg, idx) => (
+                        <div key={idx} className={`chat-bubble ${msg.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-agent'}`}>
+                          {msg.text}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* Section 2: Trust Indicators */}
-      <section className="trust-indicators">
-        <div className="container trust-grid">
-          <div className="trust-item reveal-element">
-            <span className="trust-number">500+</span>
-            <span className="trust-label">Projects Delivered</span>
+      {/* Trust Indicators Section */}
+      <section className="trust-indicators bg-alt">
+        <div className="container trust-container">
+
+          {/* Row 1: Rounded top pill */}
+          <div className="trust-top-pill reveal-element">
+            <span>Enterprise Grade</span>
+            <span className="pill-divider">|</span>
+            <span>AI-Driven Optimization</span>
           </div>
-          <div className="trust-item reveal-element reveal-delay-1">
-            <span className="trust-number">120+</span>
-            <span className="trust-label">Enterprise Clients</span>
+
+          {/* Row 2: Overlapping Avatars & Headline */}
+          <div className="trust-head-group reveal-element reveal-delay-1">
+            <div className="avatar-group">
+              <div className="avatar-circle av-1">M</div>
+              <div className="avatar-circle av-2">A</div>
+              <div className="avatar-circle av-3">O</div>
+              <div className="avatar-circle av-4">E</div>
+              <div className="avatar-circle av-5">D</div>
+            </div>
+            <h3 className="trust-main-heading">
+              Trusted by <span style={{ color: 'var(--accent)', fontWeight: 700 }}>120+</span> of ambitious enterprise leaders and teams worldwide
+            </h3>
           </div>
-          <div className="trust-item reveal-element reveal-delay-2">
-            <span className="trust-number">15+</span>
-            <span className="trust-label">Industries Served</span>
+
+          {/* Row 3: Capterra/Software Advice style widget cards */}
+          <div className="badge-widgets-grid reveal-element reveal-delay-2">
+
+            {/* Widget 1: Software Advice Front Runners Style */}
+            <div className="badge-widget-card advice-style">
+              <div className="badge-logo">
+                <div className="advice-style .badge-logo" style={{ color: '#fff', fontSize: '10px', fontWeight: '800' }}>SA</div>
+              </div>
+              <div className="badge-info">
+                <span className="badge-name">Software Advice</span>
+                <span className="badge-rank">FRONT RUNNERS</span>
+                <span className="badge-desc">500+ Projects</span>
+              </div>
+            </div>
+
+            {/* Widget 2: Capterra Style */}
+            <div className="badge-widget-card capterra-style">
+              <div className="badge-logo">
+                <div className="capterra-style .badge-logo" style={{ color: '#fff', fontSize: '12px' }}>▲</div>
+              </div>
+              <div className="badge-info">
+                <span className="badge-name">Capterra 4.9</span>
+                <div className="badge-stars">★★★★★</div>
+                <span className="badge-desc">Delivered Successfully</span>
+              </div>
+            </div>
+
+            {/* Widget 3: GetApp Style */}
+            <div className="badge-widget-card getapp-style">
+              <div className="badge-logo">
+                <div className="getapp-style .badge-logo" style={{ color: '#fff', fontSize: '11px', fontWeight: '800' }}>G</div>
+              </div>
+              <div className="badge-info">
+                <span className="badge-name">GetApp</span>
+                <div className="badge-stars">★★★★★ 4.8</div>
+                <span className="badge-desc">15+ Industries Served</span>
+              </div>
+            </div>
+
+            {/* Widget 4: Software Advice Alternative Style */}
+            <div className="badge-widget-card advice-dark-style">
+              <div className="badge-logo">
+                <div className="advice-dark-style .badge-logo" style={{ color: '#fff', fontSize: '12px' }}>★</div>
+              </div>
+              <div className="badge-info">
+                <span className="badge-name">98% Client</span>
+                <div className="badge-stars">★★★★★ 4.7</div>
+                <span className="badge-desc">Satisfaction Rate</span>
+              </div>
+            </div>
+
           </div>
-          <div className="trust-item reveal-element reveal-delay-3">
-            <span className="trust-number">98%</span>
-            <span className="trust-label">Client Satisfaction</span>
+
+          {/* Row 4: G2 Style Shields */}
+          <div className="shield-widgets-row reveal-element reveal-delay-3">
+
+            <div className="shield-widget-card">
+              <div className="shield-header">SPRING 2026</div>
+              <div className="shield-body">
+                <span className="shield-main">Momentum</span>
+                <span className="shield-sub">Leader</span>
+              </div>
+            </div>
+
+            <div className="shield-widget-card">
+              <div className="shield-header">SPRING 2026</div>
+              <div className="shield-body">
+                <span className="shield-main">High</span>
+                <span className="shield-sub">Performer</span>
+              </div>
+            </div>
+
+            <div className="shield-widget-card">
+              <div className="shield-header">AXIONSPHERE</div>
+              <div className="shield-body">
+                <span className="shield-main">Users</span>
+                <span className="shield-sub">Love Us</span>
+              </div>
+            </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* Section 3: Problem → Solution & Transformation Section */}
+      {/* Problem → Solution Section */}
       <section id="challenges">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Operational Friction</span>
             <h2>Modern Enterprises Face New Challenges</h2>
-            <p>Disconnected datasets, manual workloads, and legacy technical debt act as sand in the gears of modern business growth.</p>
           </div>
 
           <div className="problems-grid">
+
+            {/* Card 1: Disconnected Systems */}
             <div className="problem-card reveal-element">
-              <span className="problem-cost-badge">Annual Waste: High</span>
-              <div className="problem-icon-wrapper">
-                <Layers size={22} />
-              </div>
-              <h3>Disconnected Systems</h3>
-              <p>Teams work across multiple platform interfaces, forcing manual record duplication and producing systemic data inconsistencies.</p>
-              <div className="problem-impact-list">
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Operational Impact:</span>
-                  <span className="problem-impact-value">Fragmented communications & tool sprawl.</span>
+              <div className="problem-card-body">
+                <div className="problem-icon-wrapper">
+                  <Layers size={16} />
                 </div>
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Business Cost:</span>
-                  <span className="problem-impact-value">Up to 20% lost productivity in manual reconciliation.</span>
+                <h3>Disconnected Systems <span className="highlight-tag p-violet">Silos</span></h3>
+                <p>Teams work across multiple platforms creating inefficiencies.</p>
+              </div>
+
+              <div className="mockup-workspace">
+                <div className="mockup-window">
+                  <div className="window-header">
+                    <div className="window-dots">
+                      <span className="dot dot-red"></span>
+                      <span className="dot dot-yellow"></span>
+                      <span className="dot dot-green"></span>
+                    </div>
+                    <div className="window-address">sync_status.sh</div>
+                  </div>
+                  <div className="window-body">
+                    <div className="disconnected-mockup">
+                      <div className="disc-node">
+                        <Database size={12} />
+                        <span>ERP Data</span>
+                      </div>
+                      <div className="disc-link">
+                        <div className="disc-arrow-broken"></div>
+                        <span className="disc-status">Broken Sync</span>
+                      </div>
+                      <div className="disc-node">
+                        <Layers size={12} />
+                        <span>CRM Leads</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Card 2: Slow Decision Making */}
             <div className="problem-card reveal-element reveal-delay-1">
-              <span className="problem-cost-badge">Risk Factor: Critical</span>
-              <div className="problem-icon-wrapper">
-                <Clock size={22} />
-              </div>
-              <h3>Slow Decision Making</h3>
-              <p>Critical business insights remain buried deep in isolated data silos, requiring days of consolidation before leaders can act.</p>
-              <div className="problem-impact-list">
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Operational Impact:</span>
-                  <span className="problem-impact-value">Delayed market response & outdated reporting.</span>
+              <div className="problem-card-body">
+                <div className="problem-icon-wrapper">
+                  <Clock size={16} />
                 </div>
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Business Cost:</span>
-                  <span className="problem-impact-value">Missed product-market opportunities and high executive overhead.</span>
+                <h3>Slow Decision Making <span className="highlight-tag p-green">Data Lag</span></h3>
+                <p>Critical business insights remain buried in data silos.</p>
+              </div>
+
+              <div className="mockup-workspace">
+                <div className="mockup-window">
+                  <div className="window-header">
+                    <div className="window-dots">
+                      <span className="dot dot-red"></span>
+                      <span className="dot dot-yellow"></span>
+                      <span className="dot dot-green"></span>
+                    </div>
+                    <div className="window-address">query_analytics.sql</div>
+                  </div>
+                  <div className="window-body">
+                    <div className="silos-mockup">
+                      <div className="silo-query-bar">
+                        <span>SELECT * FROM global_insights;</span>
+                      </div>
+                      <div className="silo-status">
+                        <div className="silo-spinner"></div>
+                        <span>Query running... Est. 48 hours</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Card 3: Manual Operations */}
             <div className="problem-card reveal-element">
-              <span className="problem-cost-badge">Error Rate: ~12%</span>
-              <div className="problem-icon-wrapper">
-                <AlertTriangle size={22} />
-              </div>
-              <h3>Manual Operations</h3>
-              <p>Highly repetitive processes consume valuable employee hours, resulting in costly human error and capping organizational throughput.</p>
-              <div className="problem-impact-list">
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Operational Impact:</span>
-                  <span className="problem-impact-value">High staff fatigue & error propagation.</span>
+              <div className="problem-card-body">
+                <div className="problem-icon-wrapper">
+                  <AlertTriangle size={16} />
                 </div>
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Business Cost:</span>
-                  <span className="problem-impact-value">Inflated direct operational costs and sluggish order-to-cash cycles.</span>
+                <h3>Manual Operations <span className="highlight-tag p-orange">Repetitive</span></h3>
+                <p>Time-consuming processes reduce productivity and growth.</p>
+              </div>
+
+              <div className="mockup-workspace">
+                <div className="mockup-window">
+                  <div className="window-header">
+                    <div className="window-dots">
+                      <span className="dot dot-red"></span>
+                      <span className="dot dot-yellow"></span>
+                      <span className="dot dot-green"></span>
+                    </div>
+                    <div className="window-address">tasks_queue.json</div>
+                  </div>
+                  <div className="window-body">
+                    <div className="manual-mockup">
+                      <div className="manual-task-item">
+                        <span>Copy CSV Lead Data to ERP Ledger</span>
+                        <span className="manual-badge">Pending</span>
+                      </div>
+                      <div className="manual-task-item">
+                        <span>Send Daily Telemetry PDF Report</span>
+                        <span className="manual-badge">Pending</span>
+                      </div>
+                      <div className="manual-task-item">
+                        <span>Email Shipment Status to Client</span>
+                        <span className="manual-badge">Pending</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Card 4: Legacy Technology */}
             <div className="problem-card reveal-element reveal-delay-1">
-              <span className="problem-cost-badge">Maintenance: Extreme</span>
-              <div className="problem-icon-wrapper">
-                <Database size={22} />
-              </div>
-              <h3>Legacy Technology</h3>
-              <p>Outdated technological foundations limit horizontal scalability, prevent cloud modernizations, and repel top engineering talent.</p>
-              <div className="problem-impact-list">
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Operational Impact:</span>
-                  <span className="problem-impact-value">High security risks & integration friction.</span>
+              <div className="problem-card-body">
+                <div className="problem-icon-wrapper">
+                  <Database size={16} />
                 </div>
-                <div className="problem-impact-item">
-                  <span className="problem-impact-label">Business Cost:</span>
-                  <span className="problem-impact-value">Astronomical maintenance budgets with zero competitive value.</span>
+                <h3>Legacy Technology <span className="highlight-tag p-red">Deprecated</span></h3>
+                <p>Outdated systems limit scalability and innovation.</p>
+              </div>
+
+              <div className="mockup-workspace">
+                <div className="mockup-window">
+                  <div className="window-header">
+                    <div className="window-dots">
+                      <span className="dot dot-red"></span>
+                      <span className="dot dot-yellow"></span>
+                      <span className="dot dot-green"></span>
+                    </div>
+                    <div className="window-address">db_config.ini</div>
+                  </div>
+                  <div className="window-body" style={{ padding: 0 }}>
+                    <div className="legacy-mockup">
+                      <div><span className="legacy-prompt">db_connect:</span> loading...</div>
+                      <div className="legacy-error">
+                        [FATAL] Memory limit exceeded.
+                        Driver deprecated. Connection failed.
+                      </div>
+                      <div><span className="legacy-prompt">db_connect:</span> retrying...</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
           </div>
 
           <div className="solution-transition-box reveal-element">
             <h3 className="solution-transition-title">How AxionSphere Helps</h3>
             <p className="solution-transition-desc">
-              We design intelligent digital ecosystems that connect system data, automate repetitive operations, and empower leadership to scale with absolute confidence.
+              We design intelligent ecosystems that connect data, automate operations, and empower businesses to scale with confidence.
             </p>
           </div>
 
-          {/* Interactive Before & After Comparison Panel */}
+          {/* Clean Before/After Tab Switcher */}
           <div className="before-after-container reveal-element">
             <div className="before-after-tabs">
-              <button 
+              <button
                 className={`ba-tab ${beforeAfterTab === 'disconnected' ? 'active' : ''}`}
                 onClick={() => setBeforeAfterTab('disconnected')}
               >
                 <div className="ba-tab-indicator">
-                  {beforeAfterTab === 'disconnected' ? <TrendingDown size={18} /> : 1}
+                  {beforeAfterTab === 'disconnected' ? <TrendingDown size={14} /> : 1}
                 </div>
                 <div className="ba-tab-content">
                   <h4>Before Transformation</h4>
-                  <p>Manual, Disconnected, and Reactive operations.</p>
+                  <p>Disconnected & Fragmented Silos</p>
                 </div>
               </button>
 
-              <button 
+              <button
                 className={`ba-tab ${beforeAfterTab === 'connected' ? 'active' : ''}`}
                 onClick={() => setBeforeAfterTab('connected')}
               >
                 <div className="ba-tab-indicator">
-                  {beforeAfterTab === 'connected' ? <TrendingUp size={18} /> : 2}
+                  {beforeAfterTab === 'connected' ? <TrendingUp size={14} /> : 2}
                 </div>
                 <div className="ba-tab-content">
                   <h4>After Transformation</h4>
-                  <p>Automated, Connected, and Predictive ecosystems.</p>
+                  <p>Intelligent, Connected Digital Hub</p>
                 </div>
               </button>
             </div>
@@ -508,89 +834,79 @@ function App() {
             {/* Simulated Live Architecture Screen */}
             <div className="ba-visual-panel">
               <div className="ba-visual-header">
-                <div className="ba-window-controls">
-                  <span className="ba-dot ba-dot-red"></span>
-                  <span className="ba-dot ba-dot-yellow"></span>
-                  <span className="ba-dot ba-dot-green"></span>
+                <div className="window-dots">
+                  <span className="window-dot window-dot-red"></span>
+                  <span className="window-dot window-dot-yellow"></span>
+                  <span className="window-dot window-dot-green"></span>
                 </div>
                 <span className="ba-window-title">
-                  {beforeAfterTab === 'disconnected' ? 'SYSTEM DIAGRAM: FRAGMENTED INFRA' : 'SYSTEM DIAGRAM: INTELLIGENT ENTERPRISE'}
+                  {beforeAfterTab === 'disconnected' ? 'SYSTEM STATUS: FRAGMENTED SILOS' : 'SYSTEM STATUS: UNIFIED DIGITAL HUB'}
                 </span>
+                <div style={{ width: '30px' }}></div>
               </div>
 
               <div className="ba-visual-body">
                 {beforeAfterTab === 'disconnected' ? (
-                  <div className="visual-state state-manual">
+                  <div style={{ width: '100%' }}>
                     <div className="state-manual-nodes">
                       <div className="manual-item-card">
-                        <HardDrive size={24} />
-                        <h5>ERP DB</h5>
-                        <p style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>Isolated Server</p>
+                        <HardDrive size={16} />
+                        <h5>ERP Data</h5>
+                        <p>Isolated DB</p>
                       </div>
                       <div className="manual-item-card">
-                        <Layers size={24} />
-                        <h5>CRM Data</h5>
-                        <p style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>Manual CSV Export</p>
+                        <Layers size={16} />
+                        <h5>CRM Leads</h5>
+                        <p>Manual CSV Export</p>
                       </div>
                       <div className="manual-item-card">
-                        <FileText size={24} />
-                        <h5>Logistics Log</h5>
-                        <p style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>Paper Records</p>
+                        <FileText size={16} />
+                        <h5>Delivery Log</h5>
+                        <p>Spreadsheet File</p>
                       </div>
-                    </div>
-                    <div className="state-arrow-flow">
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Fragmented Workflows</span>
                     </div>
                     <div className="disconnect-indicator">
-                      <div className="disconnect-label">CONNECTION FAILED (LATENCY: HIGH)</div>
+                      LATENCY: HIGH | CONTINUOUS MANIPULATION REQUIRED
                     </div>
                   </div>
                 ) : (
-                  <div className="visual-state state-connected">
-                    <div className="state-connected-grid">
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div className="connected-node">
-                          <div className="connected-node-icon"><Database size={16} /></div>
-                          <div>
-                            <h5 style={{ fontSize: '0.875rem' }}>Core SAP</h5>
-                            <p style={{ fontSize: '0.6875rem', color: '#10b981' }}>Connected</p>
-                          </div>
-                        </div>
-                        <div className="connected-node">
-                          <div className="connected-node-icon"><Cpu size={16} /></div>
-                          <div>
-                            <h5 style={{ fontSize: '0.875rem' }}>IoT Gateway</h5>
-                            <p style={{ fontSize: '0.6875rem', color: '#10b981' }}>Telemetry Active</p>
-                          </div>
+                  <div className="state-connected-grid">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div className="connected-node">
+                        <div className="connected-node-icon"><Database size={12} /></div>
+                        <div>
+                          <h5>Core SAP</h5>
+                          <p>Live Sync</p>
                         </div>
                       </div>
-
-                      <div className="connected-hub">
-                        <div className="connected-hub-pulse"></div>
-                        <Globe size={32} />
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div className="connected-node">
-                          <div className="connected-node-icon"><Workflow size={16} /></div>
-                          <div>
-                            <h5 style={{ fontSize: '0.875rem' }}>Workflow Agent</h5>
-                            <p style={{ fontSize: '0.6875rem', color: '#10b981' }}>Automating</p>
-                          </div>
-                        </div>
-                        <div className="connected-node">
-                          <div className="connected-node-icon"><LineChart size={16} /></div>
-                          <div>
-                            <h5 style={{ fontSize: '0.875rem' }}>ML Analytics</h5>
-                            <p style={{ fontSize: '0.6875rem', color: '#10b981' }}>Predictive Ready</p>
-                          </div>
+                      <div className="connected-node">
+                        <div className="connected-node-icon"><Cpu size={12} /></div>
+                        <div>
+                          <h5>Edge IoT</h5>
+                          <p>Active</p>
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                      <div className="connected-line"></div>
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--accent)' }}>Unified Orchestration Engine Active</span>
-                      <div className="connected-line"></div>
+
+                    <div className="connected-hub">
+                      <Globe size={18} />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div className="connected-node">
+                        <div className="connected-node-icon"><Workflow size={12} /></div>
+                        <div>
+                          <h5>AI Agent</h5>
+                          <p>Automated</p>
+                        </div>
+                      </div>
+                      <div className="connected-node">
+                        <div className="connected-node-icon"><LineChart size={12} /></div>
+                        <div>
+                          <h5>ML Output</h5>
+                          <p>Predictive</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -600,389 +916,510 @@ function App() {
         </div>
       </section>
 
-      {/* Section 4: Services Section */}
-      <section id="services" style={{ backgroundColor: 'var(--background)' }}>
+      {/* Services Section */}
+      <section id="services" className="bg-alt">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Capabilities</span>
             <h2>Technology Solutions Built Around Business Outcomes</h2>
-            <p>We deploy senior engineering pods to construct custom enterprise integrations that scale dynamically to match global objectives.</p>
+            <p style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '0.5rem', maxWidth: '600px', marginInline: 'auto' }}>
+              We translate complexity into clean systems, connecting operations to measurable performance metrics.
+            </p>
           </div>
 
-          <div className="services-grid">
-            <div className="service-card reveal-element">
-              <div className="service-icon-wrapper">
-                <Workflow size={28} />
-              </div>
-              <h3 className="service-title">Software Development</h3>
-              <p className="service-desc">Build scalable digital platforms, enterprise applications, and cloud-native software solutions designed for long-term growth and high engineering reliability.</p>
-              <div className="service-outcomes">
-                <span className="outcome-title">Outcome Targets</span>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>99.99% Core System Availability</span>
+          <div className="capabilities-split-container reveal-element">
+
+            {/* Left Column: Visual Mockup Showcase */}
+            <div className="capabilities-visual-showcase">
+              <div className="mockup-window">
+                <div className="window-header">
+                  <div className="window-dots">
+                    <span className="dot dot-red"></span>
+                    <span className="dot dot-yellow"></span>
+                    <span className="dot dot-green"></span>
+                  </div>
+                  <div className="window-address">
+                    {activeCapability === 0 && 'cloud_architecture.sh'}
+                    {activeCapability === 1 && 'sap_sync_ledger.sh'}
+                    {activeCapability === 2 && 'ai_prediction_model.py'}
+                    {activeCapability === 3 && 'iot_telemetry_flow.cpp'}
+                    {activeCapability === 4 && 'bpm_process_automation.json'}
+                  </div>
                 </div>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>10x Expansion Scalability Room</span>
+
+                <div className="window-body capabilities-visual-body">
+                  {activeCapability === 0 && (
+                    <div className="cap-visual-item dev-visual">
+                      <div className="visual-metrics-row">
+                        <div className="metric-box">
+                          <span className="metric-label">API Response</span>
+                          <span className="metric-value text-green">14ms</span>
+                        </div>
+                        <div className="metric-box">
+                          <span className="metric-label">Server Cluster</span>
+                          <span className="metric-value">Active</span>
+                        </div>
+                        <div className="metric-box">
+                          <span className="metric-label">Uptime</span>
+                          <span className="metric-value">99.99%</span>
+                        </div>
+                      </div>
+                      <div className="visual-console-output">
+                        <div><span className="console-prompt">$</span> npm run build:production</div>
+                        <div className="text-green">✓ Compiled successfully in 280ms</div>
+                        <div><span className="console-prompt">$</span> pm2 status cluster</div>
+                        <div className="text-violet">Online [Node-1, Node-2, Node-3]</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCapability === 1 && (
+                    <div className="cap-visual-item sap-visual">
+                      <div className="visual-title-row">
+                        <span className="visual-subtitle">Ledger Synchronization Pipeline</span>
+                        <span className="status-badge-green">Syncing</span>
+                      </div>
+                      <div className="sap-sync-list">
+                        <div className="sap-sync-row">
+                          <span>Sales Ledger Row 1042</span>
+                          <span className="text-green">Synced ERP</span>
+                        </div>
+                        <div className="sap-sync-row">
+                          <span>Inventory Allocation</span>
+                          <span className="text-green">Synced ERP</span>
+                        </div>
+                        <div className="sap-sync-row">
+                          <span>Logistics Shipping manifest</span>
+                          <span className="text-green">Synced ERP</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCapability === 2 && (
+                    <div className="cap-visual-item ai-visual">
+                      <div className="visual-title-row">
+                        <span className="visual-subtitle">AI Demand Predictor</span>
+                        <span className="status-badge-violet">98.6% Acc</span>
+                      </div>
+                      <div className="ai-bars-chart">
+                        <div className="ai-bar-group">
+                          <div className="ai-bar-fill-violet" style={{ height: '70px' }}></div>
+                          <span className="ai-bar-label">Product Q3</span>
+                        </div>
+                        <div className="ai-bar-group">
+                          <div className="ai-bar-fill-violet" style={{ height: '95px' }}></div>
+                          <span className="ai-bar-label">Product Q4</span>
+                        </div>
+                        <div className="ai-bar-group">
+                          <div className="ai-bar-fill-violet" style={{ height: '50px' }}></div>
+                          <span className="ai-bar-label">Supply Chain</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCapability === 3 && (
+                    <div className="cap-visual-item iot-visual">
+                      <div className="visual-title-row">
+                        <span className="visual-subtitle">Edge Telemetry Stream</span>
+                        <span className="status-badge-orange">120 streams</span>
+                      </div>
+                      <div className="iot-devices-list">
+                        <div className="iot-device-row">
+                          <span>Device #1042 (Motor Temp)</span>
+                          <span className="text-green">24.5°C OK</span>
+                        </div>
+                        <div className="iot-device-row">
+                          <span>Device #1043 (Axial Vib)</span>
+                          <span className="text-green">0.02mm OK</span>
+                        </div>
+                        <div className="iot-device-row">
+                          <span>Device #1044 (Fluid Pres)</span>
+                          <span className="text-green">120 psi OK</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeCapability === 4 && (
+                    <div className="cap-visual-item bpm-visual">
+                      <div className="visual-title-row">
+                        <span className="visual-subtitle">Workflow Operations Autopilot</span>
+                        <span className="status-badge-blue">Auto</span>
+                      </div>
+                      <div className="bpm-flow-steps">
+                        <div className="bpm-flow-step-item current-step">
+                          <span className="step-num">1</span>
+                          <span>CSV Import</span>
+                        </div>
+                        <div className="bpm-flow-arrow">→</div>
+                        <div className="bpm-flow-step-item">
+                          <span className="step-num">2</span>
+                          <span>AI Ledger Sync</span>
+                        </div>
+                        <div className="bpm-flow-arrow">→</div>
+                        <div className="bpm-flow-step-item">
+                          <span className="step-num">3</span>
+                          <span>Slack Alert</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="service-card reveal-element reveal-delay-1">
-              <div className="service-icon-wrapper">
-                <Layers size={28} />
-              </div>
-              <h3 className="service-title">SAP Integration</h3>
-              <p className="service-desc">Connect complex ERP platforms, HR networks, and vendor chains into a unified central business ledger that improves global operational visibility.</p>
-              <div className="service-outcomes">
-                <span className="outcome-title">Outcome Targets</span>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Unified Operational Ledgers</span>
+            {/* Right Column: Interactive Capabilities List */}
+            <div className="capabilities-interactive-list">
+              {[
+                {
+                  title: 'Software Development',
+                  desc: 'Scalable platforms & cloud-native microservices.',
+                  icon: <Workflow size={16} />,
+                  category: 'dev'
+                },
+                {
+                  title: 'SAP Integration',
+                  desc: 'Connect business functions into a unified ecosystem.',
+                  icon: <Layers size={16} />,
+                  category: 'integration'
+                },
+                {
+                  title: 'Data Science & AI',
+                  desc: 'Predictive intelligence & deep analytical decisions.',
+                  icon: <Cpu size={16} />,
+                  category: 'data'
+                },
+                {
+                  title: 'IoT Solutions',
+                  desc: 'Asset edge monitoring & telemetry ecosystems.',
+                  icon: <Radio size={16} />,
+                  category: 'data'
+                },
+                {
+                  title: 'Business Process Management',
+                  desc: 'Streamline workflows and reduce operational errors.',
+                  icon: <CheckSquare size={16} />,
+                  category: 'integration'
+                }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`capability-list-item ${activeCapability === idx ? 'active-item' : ''}`}
+                  onClick={() => setActiveCapability(idx)}
+                  onMouseEnter={() => setActiveCapability(idx)}
+                >
+                  <div className="cap-item-icon-wrapper">
+                    {item.icon}
+                  </div>
+                  <div className="cap-item-info">
+                    <h4 className="cap-item-title">{item.title}</h4>
+                    <p className="cap-item-desc">{item.desc}</p>
+                  </div>
+                  {activeCapability === idx && <div className="active-glow-bar"></div>}
                 </div>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Zero Manual CSV Adjustments</span>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="service-card reveal-element reveal-delay-2">
-              <div className="service-icon-wrapper">
-                <Cpu size={28} />
-              </div>
-              <h3 className="service-title">Data Science & AI</h3>
-              <p className="service-desc">Transform legacy data lakes into automated intelligence reports using custom-trained neural networks, machine learning algorithms, and agentic workflows.</p>
-              <div className="service-outcomes">
-                <span className="outcome-title">Outcome Targets</span>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Automated Trend Prediction</span>
-                </div>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>90%+ Automated Insight Audits</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="service-card reveal-element">
-              <div className="service-icon-wrapper">
-                <Globe size={28} />
-              </div>
-              <h3 className="service-title">IoT Solutions</h3>
-              <p className="service-desc">Monitor, analyze, and optimize remote field operations through secure connected edge devices, real-time sensor streams, and centralized operational dashboards.</p>
-              <div className="service-outcomes">
-                <span className="outcome-title">Outcome Targets</span>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Real-time Operations Telemetry</span>
-                </div>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Predictive Maintenance Triggers</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="service-card reveal-element reveal-delay-1">
-              <div className="service-icon-wrapper">
-                <Settings size={28} />
-              </div>
-              <h3 className="service-title">Business Process Management</h3>
-              <p className="service-desc">Eliminate manual effort bottlenecks and streamline workflows through custom-engineered robotic process automation (RPA) and operational workflow tooling.</p>
-              <div className="service-outcomes">
-                <span className="outcome-title">Outcome Targets</span>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>65% Task Turnaround Reductions</span>
-                </div>
-                <div className="outcome-item">
-                  <Check size={14} className="outcome-check" />
-                  <span>Clean End-to-End Task Logging</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Section 5: Industries Section */}
+      {/* Industries Section */}
       <section id="industries">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Domain Experience</span>
             <h2>Industry Expertise That Drives Measurable Results</h2>
-            <p>Our vertical specialization translates general technical capabilities into localized business advantages across crucial supply and demand sectors.</p>
+            <p style={{ fontSize: '13px', color: 'var(--secondary-text)', marginTop: '0.5rem', maxWidth: '600px', marginInline: 'auto' }}>
+              Deep vertical specialization combined with cutting-edge digital execution.
+            </p>
           </div>
 
-          {/* Horizontally scrollable panel */}
-          <div className="industries-scroll-wrapper reveal-element">
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Automobile</span>
-                <div className="industry-icon-box">
-                  <Settings size={20} />
+          <div className="industries-interactive-layout reveal-element">
+            
+            {/* Left Side: 3 Industries */}
+            <div className="industries-side-column">
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><Settings size={14} /></div>
+                  <h4>Automobile</h4>
                 </div>
+                <p>Smart manufacturing, connected operations, and assembly line optimization.</p>
               </div>
-              <p className="industry-desc">Smart manufacturing, automated quality verification loops, connected logistics, and complex assembly lines data aggregation.</p>
-              <div className="industry-visual-container">
-                <div className="visual-automobile">
-                  <div className="speedometer-bar">
-                    <div className="speedometer-fill"></div>
+
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><Truck size={14} /></div>
+                  <h4>Logistics</h4>
+                </div>
+                <p>Fleet visibility, route intelligence, and operational automation.</p>
+              </div>
+
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><Layers size={14} /></div>
+                  <h4>Consumer Goods</h4>
+                </div>
+                <p>Demand forecasting, inventory optimization, and customer analytics.</p>
+              </div>
+            </div>
+
+            {/* Center: Self-looping Animated AxionSphere Core inside a Dark Screen Mobile Mockup */}
+            <div className="industries-center-core">
+              {/* Background radar grid rings & ambient AI glow */}
+              <div className="radar-ring-bg ring-1"></div>
+              <div className="radar-ring-bg ring-2"></div>
+              <div className="mockup-ambient-glow"></div>
+              
+              {/* Sleek Dark Screen Mobile Mockup */}
+              <div className="center-mobile-mockup">
+                <div className="phone-dynamic-island"></div>
+                <div className="phone-screen">
+                  <div className="phone-screen-grid"></div>
+                  
+                  {/* Glowing purple voice assistant orb */}
+                  <div className="phone-assistant-orb-container">
+                    <div className="assistant-orb-core-glow"></div>
                   </div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>OEE: 87.2%</span>
+                  
+                  <div className="phone-assistant-title">Axion AI</div>
+                  <div className="phone-assistant-subtitle">Enterprise Co-Pilot</div>
+                </div>
+              </div>
+
+              {/* Self-looping floating telemetry notifications (overlaying) */}
+              <div className="telemetry-float-container">
+                <div className="floating-banner banner-1">
+                  <div className="banner-avatar bg-violet">
+                    <Settings size={10} className="banner-icon-svg" />
+                  </div>
+                  <div className="banner-text-content">
+                    <span className="banner-title">OEE Sync Active</span>
+                    <span className="banner-desc">Efficiency at 98.4%</span>
+                  </div>
+                </div>
+
+                <div className="floating-banner banner-2">
+                  <div className="banner-avatar bg-blue">
+                    <Truck size={10} className="banner-icon-svg" />
+                  </div>
+                  <div className="banner-text-content">
+                    <span className="banner-title">Route Optimized</span>
+                    <span className="banner-desc">Fuel consumption -14%</span>
+                  </div>
+                </div>
+
+                <div className="floating-banner banner-3">
+                  <div className="banner-avatar bg-emerald">
+                    <Shield size={10} className="banner-icon-svg" />
+                  </div>
+                  <div className="banner-text-content">
+                    <span className="banner-title">Compliance Audit</span>
+                    <span className="banner-desc">Logs verified & signed</span>
+                  </div>
+                </div>
+
+                <div className="floating-banner banner-4">
+                  <div className="banner-avatar bg-orange">
+                    <TrendingUp size={10} className="banner-icon-svg" />
+                  </div>
+                  <div className="banner-text-content">
+                    <span className="banner-title">AUM Ledger</span>
+                    <span className="banner-desc">Balances synchronized</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Logistics</span>
-                <div className="industry-icon-box">
-                  <Truck size={20} />
+            {/* Right Side: 3 Industries */}
+            <div className="industries-side-column">
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><Shield size={14} /></div>
+                  <h4>Pharmaceutical</h4>
                 </div>
+                <p>Regulatory compliance, production intelligence, and data-driven operations.</p>
               </div>
-              <p className="industry-desc">Real-time asset visibility, dynamic routing neural algorithms, dispatch automation, and supply line resilience models.</p>
-              <div className="industry-visual-container">
-                <div className="visual-logistics-path">
-                  <div className="logistic-truck-dot"></div>
+
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><TrendingUp size={14} /></div>
+                  <h4>Wealth Management</h4>
                 </div>
+                <p>Digital advisory platforms, analytics, and secure financial solutions.</p>
+              </div>
+
+              <div className="industry-bullet-card">
+                <div className="industry-bullet-header">
+                  <div className="industry-bullet-icon"><Activity size={14} /></div>
+                  <h4>Dairy</h4>
+                </div>
+                <p>Supply chain visibility, quality monitoring, and cold chain optimization.</p>
               </div>
             </div>
 
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Consumer Goods</span>
-                <div className="industry-icon-box">
-                  <Layers size={20} />
-                </div>
-              </div>
-              <p className="industry-desc">Machine learning retail demand forecasting, automated warehouses, catalog optimizations, and localized stock balancing.</p>
-              <div className="industry-visual-container">
-                <div className="visual-chart-bars">
-                  <div className="chart-bar chart-bar-1"></div>
-                  <div className="chart-bar chart-bar-2"></div>
-                  <div className="chart-bar chart-bar-3"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Pharmaceutical</span>
-                <div className="industry-icon-box">
-                  <Shield size={20} />
-                </div>
-              </div>
-              <p className="industry-desc">Regulatory compliance automation, environmental sensors audit logs, and secure chemical process data pipelines.</p>
-              <div className="industry-visual-container">
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <CheckCircle2 size={12} /> FDA COMPLIANCE SECURED
-                </span>
-              </div>
-            </div>
-
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Wealth Management</span>
-                <div className="industry-icon-box">
-                  <TrendingUp size={20} />
-                </div>
-              </div>
-              <p className="industry-desc">Digital portfolio allocation trackers, automated compliance reporting, custom customer analytics dashboards.</p>
-              <div className="industry-visual-container">
-                <span style={{ fontFamily: 'monospace', fontSize: '0.875rem', fontWeight: 700 }}>
-                  AUM: $1.2B | +14.6%
-                </span>
-              </div>
-            </div>
-
-            <div className="industry-card">
-              <div className="industry-card-header">
-                <span className="industry-card-title">Dairy</span>
-                <div className="industry-icon-box">
-                  <Activity size={20} />
-                </div>
-              </div>
-              <p className="industry-desc">Real-time cold-chain compliance trackers, quality monitoring telemetry, and automated delivery schedules.</p>
-              <div className="industry-visual-container">
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Cold Chain: 3.8°C (Optimal)</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Section 6: Why Businesses Choose AxionSphere */}
-      <section id="why-us" style={{ backgroundColor: 'var(--surface)' }}>
+      {/* Why Businesses Choose AxionSphere Section */}
+      <section id="why-us" className="bg-alt">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Our Edge</span>
-            <h2>Why Leading Enterprises Partner With AxionSphere</h2>
-            <p>We blend elite software engineering capabilities with a rigorous consulting framework to unlock enterprise value.</p>
+            <h2>Trusted By Enterprises Focused On Growth</h2>
           </div>
 
           <div className="why-grid">
             <div className="why-card reveal-element">
               <div className="why-icon-box">
-                <Award size={20} />
+                <Award size={14} />
               </div>
-              <h3 className="why-title">Enterprise Expertise</h3>
-              <p className="why-desc">Years of practical experience delivering complex transformation initiatives inside legacy software architectures.</p>
+              <h3 className="why-title">Enterprise-Grade Expertise</h3>
+              <p className="why-desc">Deep experience delivering large-scale transformation initiatives.</p>
             </div>
 
             <div className="why-card reveal-element reveal-delay-1">
               <div className="why-icon-box">
-                <Cpu size={20} />
+                <Cpu size={14} />
               </div>
               <h3 className="why-title">AI-First Innovation</h3>
-              <p className="why-desc">We build solutions on modern machine learning APIs and agentic logic to ensure future-ready durability.</p>
+              <p className="why-desc">Modern solutions built for future-ready businesses.</p>
             </div>
 
             <div className="why-card reveal-element reveal-delay-2">
               <div className="why-icon-box">
-                <Briefcase size={20} />
+                <Briefcase size={14} />
               </div>
-              <h3 className="why-title">Outcome Focus</h3>
-              <p className="why-desc">We measure success by system metrics like latency reductions and margins improvements, not just billable hours.</p>
+              <h3 className="why-title">Business-Focused Approach</h3>
+              <p className="why-desc">Technology decisions aligned with measurable outcomes.</p>
             </div>
 
             <div className="why-card reveal-element reveal-delay-3">
               <div className="why-icon-box">
-                <Layers size={20} />
+                <Layers size={14} />
               </div>
               <h3 className="why-title">Scalable Architecture</h3>
-              <p className="why-desc">All system configurations are designed for modular scaling to handle exponential future request volumes.</p>
+              <p className="why-desc">Solutions designed to support long-term growth.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 7: Digital Transformation Process */}
+      {/* Digital Transformation Process */}
       <section id="process">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Transformation Map</span>
             <h2>From Strategy To Scale</h2>
-            <p>We leverage a structured integration framework to guarantee high-performance project success with zero workflow disruptions.</p>
           </div>
 
           <div className="process-timeline reveal-element">
             <div className="process-step">
               <div className="step-number">01</div>
               <h3 className="step-title">Discover</h3>
-              <p className="step-desc">Thorough auditing of current data silos, business bottlenecks, and core processes.</p>
+              <p className="step-desc">Understanding business goals, challenges, and opportunities.</p>
             </div>
 
             <div className="process-step">
               <div className="step-number">02</div>
               <h3 className="step-title">Design</h3>
-              <p className="step-desc">Creating scalable technology architectures and API-first transition blueprints.</p>
+              <p className="step-desc">Creating scalable technology roadmaps.</p>
             </div>
 
             <div className="process-step">
               <div className="step-number">03</div>
               <h3 className="step-title">Build</h3>
-              <p className="step-desc">Engineering stable digital integrations and deploying specialized AI models.</p>
+              <p className="step-desc">Engineering intelligent digital solutions.</p>
             </div>
 
             <div className="process-step">
               <div className="step-number">04</div>
               <h3 className="step-title">Optimize</h3>
-              <p className="step-desc">Refining performance metrics, testing latency thresholds, and training teams.</p>
+              <p className="step-desc">Continuously improving performance through data and insights.</p>
             </div>
 
             <div className="process-step">
               <div className="step-number">05</div>
               <h3 className="step-title">Scale</h3>
-              <p className="step-desc">Handing over unified systems and providing ongoing infrastructure maintenance.</p>
+              <p className="step-desc">Supporting long-term growth and innovation.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 8: Featured Case Studies */}
-      <section id="case-studies" style={{ backgroundColor: 'var(--background)' }}>
+      {/* Case Studies Section */}
+      <section id="case-studies" className="bg-alt">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Enterprise Proof</span>
             <h2>Real Business Impact</h2>
-            <p>Read about the structural operational results delivered to our key global enterprise partners.</p>
           </div>
 
           <div className="cases-grid">
             <div className="case-card reveal-element">
               <div className="case-image-wrapper">
-                <div className="case-image-inner">
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--secondary-text)' }}>Telemetry Dashboard</span>
-                  <div className="case-metric-box">
-                    <span className="case-metric-value">35%</span>
-                    <span className="case-metric-label">Operational Delay Reduction</span>
-                  </div>
+                <div className="case-metric-box">
+                  <span className="case-metric-value">35%</span>
+                  <span className="case-metric-label">Reduction in Operational Delays</span>
                 </div>
               </div>
               <div className="case-info">
-                <span className="case-category">Logistics Industry</span>
-                <h3 className="case-title">Fleet Dispatch Automation</h3>
-                <p className="case-desc">We integrated real-time GPS telemetry and weather API models directly into a logistics partner's SAP router, automating scheduling loops.</p>
+                <span className="case-category">Logistics Company</span>
+                <h3 className="case-title">Fleet Visibility Automation</h3>
+                <p className="case-desc">We integrated real-time GPS telemetry and weather API models to automate dispatch scheduling.</p>
               </div>
             </div>
 
             <div className="case-card reveal-element reveal-delay-1">
               <div className="case-image-wrapper">
-                <div className="case-image-inner">
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--secondary-text)' }}>Assembly Audit Logs</span>
-                  <div className="case-metric-box">
-                    <span className="case-metric-value">40%</span>
-                    <span className="case-metric-label">Efficiency Increase</span>
-                  </div>
+                <div className="case-metric-box">
+                  <span className="case-metric-value">40%</span>
+                  <span className="case-metric-label">Increase in Process Efficiency</span>
                 </div>
               </div>
               <div className="case-info">
-                <span className="case-category">Manufacturing Industry</span>
-                <h3 className="case-title">Predictive Maintenance Pipeline</h3>
-                <p className="case-desc">Deployed Edge AI agents onto assembly line machinery sensors to predict part failure risks, triggering automatic SAP parts reordering.</p>
+                <span className="case-category">Manufacturing Enterprise</span>
+                <h3 className="case-title">Predictive Asset Maintenance</h3>
+                <p className="case-desc">Deployed Edge AI agents onto assembly line machinery sensors to predict part failure risks.</p>
               </div>
             </div>
 
             <div className="case-card reveal-element reveal-delay-2">
               <div className="case-image-wrapper">
-                <div className="case-image-inner">
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--secondary-text)' }}>Demand Analysis Model</span>
-                  <div className="case-metric-box">
-                    <span className="case-metric-value">25%</span>
-                    <span className="case-metric-label">Forecasting Accuracy Lift</span>
-                  </div>
+                <div className="case-metric-box">
+                  <span className="case-metric-value">25%</span>
+                  <span className="case-metric-label">Demand Forecasting Accuracy</span>
                 </div>
               </div>
               <div className="case-info">
-                <span className="case-category">Retail Industry</span>
-                <h3 className="case-title">Neural Inventory Orchestration</h3>
-                <p className="case-desc">Connected multi-channel retail transaction histories to a custom neural network, predicting regional stock demands to minimize warehouse wastes.</p>
+                <span className="case-category">Retail Brand</span>
+                <h3 className="case-title">Neural Stock Inventory</h3>
+                <p className="case-desc">Connected transactions databases to predictive models to balance regional supply and demands.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 9: AI Readiness Assessment (UNIQUE INTERACTIVE COMPONENT) */}
+      {/* AI Readiness Assessment */}
       <section id="readiness">
         <div className="container">
           <div className="section-intro reveal-element">
             <span className="badge">Interactive Evaluator</span>
             <h2>Is Your Business Ready For AI?</h2>
-            <p>Answer a few practical questions regarding your business infrastructure and immediately retrieve a customized technology roadmap.</p>
+            <p>Answer a few questions and discover opportunities to improve automation, efficiency, and decision-making.</p>
           </div>
 
           <div className="assessment-container reveal-element">
             {assessmentStep === 0 && (
-              <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-                <Cpu size={48} color="var(--accent)" style={{ marginBottom: '1.5rem' }} />
-                <h3 style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>Initiate Infrastructure Evaluation</h3>
-                <p style={{ maxWidth: '32rem', margin: '0 auto 2.5rem auto' }}>
-                  Analyze how automation, connected telemetry, and unified database layers can reduce your operational friction. Takes 60 seconds.
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <Cpu size={32} color="var(--accent)" style={{ marginBottom: '0.75rem' }} />
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Initiate Infrastructure Evaluation</h3>
+                <p style={{ maxWidth: '28rem', margin: '0 auto 1.5rem auto' }}>
+                  Analyze how automation, connected telemetry, and unified database layers can reduce your operational friction.
                 </p>
                 <button className="btn btn-primary" onClick={handleAssessmentStart}>Start Assessment</button>
               </div>
@@ -991,8 +1428,8 @@ function App() {
             {assessmentStep >= 1 && assessmentStep <= ASSESSMENT_QUESTIONS.length && (
               <div>
                 <div className="assessment-progress-bar-bg">
-                  <div 
-                    className="assessment-progress-bar-fill" 
+                  <div
+                    className="assessment-progress-bar-fill"
                     style={{ width: `${(assessmentStep / ASSESSMENT_QUESTIONS.length) * 100}%` }}
                   ></div>
                 </div>
@@ -1009,8 +1446,8 @@ function App() {
                   {ASSESSMENT_QUESTIONS[assessmentStep - 1].options.map((opt, index) => {
                     const isSelected = assessmentAnswers[assessmentStep] && assessmentAnswers[assessmentStep].text === opt.text
                     return (
-                      <button 
-                        key={index} 
+                      <button
+                        key={index}
                         className={`assessment-option ${isSelected ? 'selected' : ''}`}
                         onClick={() => handleAssessmentAnswer(assessmentStep, opt)}
                       >
@@ -1024,16 +1461,16 @@ function App() {
                 </div>
 
                 <div className="assessment-footer">
-                  <button 
-                    className="btn btn-secondary" 
+                  <button
+                    className="btn btn-secondary"
                     disabled={assessmentStep === 1}
                     onClick={() => setAssessmentStep(prev => prev - 1)}
                   >
                     Previous
                   </button>
-                  
-                  <button 
-                    className="btn btn-primary" 
+
+                  <button
+                    className="btn btn-primary"
                     disabled={!assessmentAnswers[assessmentStep]}
                     onClick={handleAssessmentNext}
                   >
@@ -1044,23 +1481,26 @@ function App() {
             )}
 
             {assessmentStep === 5 && (
-              <div className="assessment-result-dashboard">
+              <div style={{ animation: 'fadeIn 0.3s ease-out forwards' }}>
                 <div className="dashboard-radial-metrics">
                   <div className="score-radial">
-                    <svg className="score-circle-svg" width="160" height="160">
-                      <circle className="score-circle-bg" cx="80" cy="80" r="70" />
-                      <circle 
-                        className="score-circle-fill" 
-                        cx="80" 
-                        cy="80" 
-                        r="70" 
-                        strokeDasharray="440"
+                    <svg width="90" height="90" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="45" cy="45" r="38" fill="none" stroke="var(--borders)" strokeWidth="5" />
+                      <circle
+                        cx="45"
+                        cy="45"
+                        r="38"
+                        fill="none"
+                        stroke="var(--accent)"
+                        strokeWidth="5"
+                        strokeDasharray="238"
                         strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
                       />
                     </svg>
-                    <div className="score-text-overlay">
+                    <div style={{ position: 'absolute', textAlign: 'center' }}>
                       <span className="score-percentage">{radialScore}%</span>
-                      <span className="score-label">Readiness</span>
                     </div>
                   </div>
 
@@ -1068,43 +1508,37 @@ function App() {
                     <h3 className="assessment-tier">
                       {radialScore <= 45 ? "AI Explorer Tier" : radialScore <= 75 ? "AI Accelerator Tier" : "AI Leader Tier"}
                     </h3>
-                    <p className="assessment-tier-desc">
-                      {radialScore <= 45 ? 
-                        "Your enterprise is at the early research phase. Focus on connecting isolated databases and deploying pilot RPA bots." : 
-                        radialScore <= 75 ? 
-                        "You have established core databases. Focus on automating cross-system actions and integrating live API telemetry loops." : 
-                        "Your enterprise is highly integrated. You are ready to deploy predictive neural intelligence models and cognitive agents."
+                    <p style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>
+                      {radialScore <= 45 ?
+                        "Your enterprise is at the early research phase. Focus on connecting isolated databases and deploying pilot RPA bots." :
+                        radialScore <= 75 ?
+                          "You have established core databases. Focus on automating cross-system actions and integrating live API telemetry loops." :
+                          "Your enterprise is highly integrated. You are ready to deploy predictive neural intelligence models and cognitive agents."
                       }
                     </p>
                   </div>
                 </div>
 
-                <div className="assessment-recommendations">
+                <div style={{ borderTop: '1px solid var(--borders)', paddingTop: '1rem', marginBottom: '1.5rem', textAlign: 'left' }}>
                   <h4 className="recommendations-title">Recommended Transformation Roadmap</h4>
                   <div className="recommendation-list">
                     <div className="recommendation-item">
-                      <CheckCircle2 size={16} className="recommendation-bullet" />
+                      <CheckCircle2 size={14} color="var(--accent)" style={{ marginTop: '2px' }} />
                       <div>
-                        <strong>Phase 1: Database Connector setup.</strong> Integrate your core CSV/CRM exports into a unified digital database to enable real-time queries.
+                        <strong>Phase 1: Database Connector setup.</strong> Integrate your core CRM/ERP data silos to establish a central, queryable database layer.
                       </div>
                     </div>
                     <div className="recommendation-item">
-                      <CheckCircle2 size={16} className="recommendation-bullet" />
+                      <CheckCircle2 size={14} color="var(--accent)" style={{ marginTop: '2px' }} />
                       <div>
-                        <strong>Phase 2: Workflow Automation.</strong> Replace recurring manual task allocations with event-driven software agents to bypass team delays.
-                      </div>
-                    </div>
-                    <div className="recommendation-item">
-                      <CheckCircle2 size={16} className="recommendation-bullet" />
-                      <div>
-                        <strong>Phase 3: Consultation Review.</strong> Meet with an AxionSphere analyst to outline a customized architecture plan.
+                        <strong>Phase 2: Workflow Automation.</strong> Replace recurring manual task handoffs with automated software trigger sequences.
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <a href="#booking" className="btn btn-primary" onClick={() => setAssessmentStep(0)}>Book Architecture Review</a>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                  <button onClick={() => { setBookingModalType('consultation'); setIsBookingModalOpen(true); }} className="btn btn-primary">Book Strategy Review</button>
                   <button className="btn btn-secondary" onClick={handleAssessmentReset}>Reset Evaluator</button>
                 </div>
               </div>
@@ -1113,159 +1547,93 @@ function App() {
         </div>
       </section>
 
-      {/* Section 10: Interactive Booking & Demos (Consultation & Demo requests) */}
-      <section id="booking" style={{ padding: 0 }}>
-        <div className="booking-section-wrapper">
-          {/* Consultation Form Panel */}
-          <div className="booking-panel reveal-element">
-            <span className="badge" style={{ alignSelf: 'flex-start' }}>Advisory Call</span>
-            <h2 style={{ textAlign: 'left', marginBottom: '1rem' }}>Let's Solve Your Next Business Challenge</h2>
-            <p style={{ marginBottom: '2.5rem', fontSize: '1.05rem' }}>
-              Schedule a 30-minute architecture workshop with our senior consulting partners. No sales pitches, just pure strategy design.
-            </p>
+      {/* Booking Advisory Section */}
+      <section id="booking" className="booking-hero-section bg-alt">
+        {/* Ambient Glow Orbs */}
+        <div className="booking-glow-container">
+          <div className="booking-glow-orb orb-1"></div>
+          <div className="booking-glow-orb orb-2"></div>
+        </div>
+
+        <div className="container">
+          <div className="booking-hero-panel">
+            <div className="booking-hero-header">
+              <span className="badge">Advisory Call</span>
+              <h2 className="booking-title">Let's Solve Your Next Business Challenge</h2>
+              <p className="booking-subtitle">
+                Whether you're planning a digital transformation initiative, implementing AI, modernizing enterprise systems, or optimizing operations, our experts are ready to help.
+              </p>
+            </div>
 
             {consultationSubmitted ? (
               <div className="form-success-overlay">
                 <div className="success-icon-box">
-                  <Check size={28} />
+                  <Check size={20} />
                 </div>
-                <h3>Consultation Scheduled Successfully</h3>
-                <p>A calendar invitation and strategy agenda has been sent to your business email. We look forward to talking.</p>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Consultation Scheduled</h3>
+                <p style={{ fontSize: '14px', color: 'var(--secondary-text)' }}>A calendar invitation and strategy agenda has been sent to your business email. We look forward to talking.</p>
               </div>
             ) : (
-              <form className="booking-form" onSubmit={handleConsultationSubmit}>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="consult-name">Full Name</label>
-                  <input 
-                    type="text" 
-                    id="consult-name" 
-                    className="form-input" 
-                    required 
-                    placeholder="Jane Doe"
-                    value={consultationForm.name}
-                    onChange={(e) => setConsultationForm({ ...consultationForm, name: e.target.value })}
-                  />
+              <form className="booking-form-grid" onSubmit={handleConsultationSubmit}>
+                <div className="form-grid-row">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="consult-name">Full Name</label>
+                    <input
+                      type="text"
+                      id="consult-name"
+                      className="form-input"
+                      required
+                      placeholder="Jane Doe"
+                      value={consultationForm.name}
+                      onChange={(e) => setConsultationForm({ ...consultationForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="consult-email">Work Email</label>
+                    <input
+                      type="email"
+                      id="consult-email"
+                      className="form-input"
+                      required
+                      placeholder="jane@company.com"
+                      value={consultationForm.email}
+                      onChange={(e) => setConsultationForm({ ...consultationForm, email: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="consult-email">Work Email</label>
-                  <input 
-                    type="email" 
-                    id="consult-email" 
-                    className="form-input" 
-                    required 
-                    placeholder="jane@company.com"
-                    value={consultationForm.email}
-                    onChange={(e) => setConsultationForm({ ...consultationForm, email: e.target.value })}
-                  />
+                
+                <div className="form-grid-row">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="consult-company">Company Name</label>
+                    <input
+                      type="text"
+                      id="consult-company"
+                      className="form-input"
+                      required
+                      placeholder="Enterprise Corp"
+                      value={consultationForm.company}
+                      onChange={(e) => setConsultationForm({ ...consultationForm, company: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="consult-challenge">Primary Focus</label>
+                    <select
+                      id="consult-challenge"
+                      className="form-input form-select"
+                      value={consultationForm.challenge}
+                      onChange={(e) => setConsultationForm({ ...consultationForm, challenge: e.target.value })}
+                    >
+                      <option value="Software Development">Software Development</option>
+                      <option value="SAP Integration">SAP Integration</option>
+                      <option value="Data Science & AI">Data Science & AI</option>
+                      <option value="IoT Solutions">IoT Solutions</option>
+                      <option value="Business Process Management">Process Optimization</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="consult-company">Company Name</label>
-                  <input 
-                    type="text" 
-                    id="consult-company" 
-                    className="form-input" 
-                    required 
-                    placeholder="Enterprise Corp"
-                    value={consultationForm.company}
-                    onChange={(e) => setConsultationForm({ ...consultationForm, company: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="consult-challenge">Primary Focus</label>
-                  <select 
-                    id="consult-challenge" 
-                    className="form-input form-select"
-                    value={consultationForm.challenge}
-                    onChange={(e) => setConsultationForm({ ...consultationForm, challenge: e.target.value })}
-                  >
-                    <option value="Software Development">Software Development</option>
-                    <option value="SAP Integration">SAP Integration</option>
-                    <option value="Data Science & AI">Data Science & AI</option>
-                    <option value="IoT Solutions">IoT Solutions</option>
-                    <option value="Business Process Management">Process Optimization</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary" disabled={consultationLoading} style={{ marginTop: '0.75rem' }}>
-                  {consultationLoading ? "Securing Timeslots..." : "Schedule Strategy Session"}
-                </button>
-              </form>
-            )}
-          </div>
 
-          {/* Product Demo Request Panel */}
-          <div className="booking-panel-cta reveal-element" id="demo">
-            <span className="badge">System Demo</span>
-            <h2 style={{ textAlign: 'left', marginBottom: '1rem' }}>See Intelligent Transformation In Action</h2>
-            <p style={{ marginBottom: '2.5rem', fontSize: '1.05rem', color: 'var(--secondary-text)' }}>
-              Request a live interactive demonstration showcasing our SAP database sync connectors, IoT device streams, and workflow automation interfaces.
-            </p>
-
-            {demoSubmitted ? (
-              <div className="form-success-overlay" style={{ background: 'var(--surface)', borderRadius: '12px', width: '100%', maxWidth: '28rem', border: '1px solid var(--borders)' }}>
-                <div className="success-icon-box">
-                  <Check size={28} />
-                </div>
-                <h3>System Demo Access Approved</h3>
-                <p>We've dispatched your digital dashboard environment credentials and an onboarding walkthrough link to your email.</p>
-              </div>
-            ) : (
-              <form className="booking-form" onSubmit={handleDemoSubmit}>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="demo-name">Full Name</label>
-                  <input 
-                    type="text" 
-                    id="demo-name" 
-                    className="form-input" 
-                    required 
-                    placeholder="John Doe"
-                    value={demoForm.name}
-                    onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="demo-email">Work Email</label>
-                  <input 
-                    type="email" 
-                    id="demo-email" 
-                    className="form-input" 
-                    required 
-                    placeholder="john@company.com"
-                    value={demoForm.email}
-                    onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="demo-industry">Your Sector</label>
-                  <select 
-                    id="demo-industry" 
-                    className="form-input form-select"
-                    value={demoForm.industry}
-                    onChange={(e) => setDemoForm({ ...demoForm, industry: e.target.value })}
-                  >
-                    <option value="Automobile">Automobile</option>
-                    <option value="Logistics">Logistics</option>
-                    <option value="Consumer Goods">Consumer Goods</option>
-                    <option value="Pharmaceutical">Pharmaceutical</option>
-                    <option value="Wealth Management">Wealth Management</option>
-                    <option value="Dairy">Dairy</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="demo-size">Enterprise Size</label>
-                  <select 
-                    id="demo-size" 
-                    className="form-input form-select"
-                    value={demoForm.size}
-                    onChange={(e) => setDemoForm({ ...demoForm, size: e.target.value })}
-                  >
-                    <option value="1-50">1 - 50 Employees</option>
-                    <option value="50-100">51 - 100 Employees</option>
-                    <option value="100-500">101 - 500 Employees</option>
-                    <option value="500+">500+ Employees</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-secondary" disabled={demoLoading} style={{ marginTop: '0.75rem' }}>
-                  {demoLoading ? "Authorizing Dashboard..." : "Request Live Demo"}
+                <button type="submit" className="btn btn-primary btn-xl" disabled={consultationLoading}>
+                  {consultationLoading ? "Securing Timeslots..." : "Book Free Strategy Consultation"}
                 </button>
               </form>
             )}
@@ -1273,17 +1641,17 @@ function App() {
         </div>
       </section>
 
-      {/* Section 11: Final CTA */}
+      {/* Final CTA Section */}
       <section className="final-cta-section" id="final-cta">
         <div className="container final-cta-content reveal-element">
-          <span className="badge"><Award size={14} /> Ready to Transform</span>
-          <h2 className="final-cta-headline text-gradient">Build The Future Of Your Business</h2>
+          <span className="badge"><Award size={12} /> Ready to Transform</span>
+          <h2 className="final-cta-headline">Build The Future Of Your Business</h2>
           <p className="final-cta-supporting">
-            Transform fragmented data into actionable decisions. Automate repetitive operations. Accelerate engineering innovation.
+            Transform data into decisions. Automate operations. Accelerate innovation.
           </p>
-          <div className="final-cta-buttons">
-            <a href="#booking" className="btn btn-primary">Book Consultation</a>
-            <a href="#demo" className="btn btn-secondary">Request Demo</a>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+            <button onClick={() => { setBookingModalType('consultation'); setIsBookingModalOpen(true); }} className="btn btn-primary">Book Consultation</button>
+            <button onClick={() => { setBookingModalType('demo'); setIsBookingModalOpen(true); }} className="btn btn-secondary">Request Demo</button>
           </div>
         </div>
       </section>
@@ -1340,21 +1708,191 @@ function App() {
             <div className="copyright">
               © {new Date().getFullYear()} AxionSphere. All Rights Reserved. Designed to premium enterprise standards.
             </div>
-            
+
             <div className="social-links">
               <a href="#" className="social-link" aria-label="AxionSphere LinkedIn">
-                <Users size={16} />
+                <Users size={12} />
               </a>
               <a href="#" className="social-link" aria-label="AxionSphere Twitter">
-                <Globe size={16} />
+                <Globe size={12} />
               </a>
               <a href="#" className="social-link" aria-label="AxionSphere GitHub">
-                <Cpu size={16} />
+                <Cpu size={12} />
               </a>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Premium Full-Screen Modal Overlay for Booking / Demo */}
+      {isBookingModalOpen && (
+        <div className="booking-modal-overlay" onClick={() => setIsBookingModalOpen(false)}>
+          <div className="booking-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="booking-modal-close" onClick={() => setIsBookingModalOpen(false)} aria-label="Close modal">
+              <X size={18} />
+            </button>
+            
+            {/* Tabs for switching between Consultation and Demo request */}
+            <div className="modal-tabs">
+              <button 
+                className={`modal-tab-btn ${bookingModalType === 'consultation' ? 'active' : ''}`}
+                onClick={() => setBookingModalType('consultation')}
+              >
+                Book Consultation
+              </button>
+              <button 
+                className={`modal-tab-btn ${bookingModalType === 'demo' ? 'active' : ''}`}
+                onClick={() => setBookingModalType('demo')}
+              >
+                Request Demo
+              </button>
+            </div>
+            
+            <div className="modal-form-container">
+              {bookingModalType === 'consultation' ? (
+                <div>
+                  <span className="badge" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>Advisory Call</span>
+                  <h3 style={{ marginBottom: '0.5rem', fontSize: '1.4rem', textAlign: 'left' }}>Let's Solve Your Next Business Challenge</h3>
+                  <p style={{ marginBottom: '1.5rem', fontSize: '13px', color: 'var(--secondary-text)', textAlign: 'left' }}>
+                    Whether you're planning a digital transformation initiative, implementing AI, modernizing enterprise systems, or optimizing operations, our experts are ready to help.
+                  </p>
+                  
+                  {consultationSubmitted ? (
+                    <div className="form-success-overlay">
+                      <div className="success-icon-box">
+                        <Check size={20} />
+                      </div>
+                      <h4 style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>Consultation Scheduled</h4>
+                      <p style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>A calendar invitation and strategy agenda has been sent to your business email.</p>
+                    </div>
+                  ) : (
+                    <form className="booking-form" onSubmit={handleConsultationSubmit} style={{ maxWidth: '100%' }}>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-consult-name">Full Name</label>
+                        <input
+                          type="text"
+                          id="modal-consult-name"
+                          className="form-input"
+                          required
+                          placeholder="Jane Doe"
+                          value={consultationForm.name}
+                          onChange={(e) => setConsultationForm({ ...consultationForm, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-consult-email">Work Email</label>
+                        <input
+                          type="email"
+                          id="modal-consult-email"
+                          className="form-input"
+                          required
+                          placeholder="jane@company.com"
+                          value={consultationForm.email}
+                          onChange={(e) => setConsultationForm({ ...consultationForm, email: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-consult-company">Company Name</label>
+                        <input
+                          type="text"
+                          id="modal-consult-company"
+                          className="form-input"
+                          required
+                          placeholder="Enterprise Corp"
+                          value={consultationForm.company}
+                          onChange={(e) => setConsultationForm({ ...consultationForm, company: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-consult-challenge">Primary Focus</label>
+                        <select
+                          id="modal-consult-challenge"
+                          className="form-input form-select"
+                          value={consultationForm.challenge}
+                          onChange={(e) => setConsultationForm({ ...consultationForm, challenge: e.target.value })}
+                        >
+                          <option value="Software Development">Software Development</option>
+                          <option value="SAP Integration">SAP Integration</option>
+                          <option value="Data Science & AI">Data Science & AI</option>
+                          <option value="IoT Solutions">IoT Solutions</option>
+                          <option value="Business Process Management">Process Optimization</option>
+                        </select>
+                      </div>
+                      <button type="submit" className="btn btn-primary" disabled={consultationLoading} style={{ marginTop: '0.5rem', width: '100%' }}>
+                        {consultationLoading ? "Securing Timeslots..." : "Book Consultation"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <span className="badge" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>System Demo</span>
+                  <h3 style={{ marginBottom: '0.5rem', fontSize: '1.4rem', textAlign: 'left' }}>See Our Solutions In Action</h3>
+                  <p style={{ marginBottom: '1.5rem', fontSize: '13px', color: 'var(--secondary-text)', textAlign: 'left' }}>
+                    Explore how intelligent technologies can improve efficiency, visibility, and performance.
+                  </p>
+                  
+                  {demoSubmitted ? (
+                    <div className="form-success-overlay">
+                      <div className="success-icon-box">
+                        <Check size={20} />
+                      </div>
+                      <h4 style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>Demo Access Approved</h4>
+                      <p style={{ fontSize: '13px', color: 'var(--secondary-text)' }}>We've dispatched your credentials and walking onboarding link to your email.</p>
+                    </div>
+                  ) : (
+                    <form className="booking-form" onSubmit={handleDemoSubmit} style={{ maxWidth: '100%' }}>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-demo-name">Full Name</label>
+                        <input
+                          type="text"
+                          id="modal-demo-name"
+                          className="form-input"
+                          required
+                          placeholder="John Doe"
+                          value={demoForm.name}
+                          onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-demo-email">Work Email</label>
+                        <input
+                          type="email"
+                          id="modal-demo-email"
+                          className="form-input"
+                          required
+                          placeholder="john@company.com"
+                          value={demoForm.email}
+                          onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="modal-demo-industry">Your Sector</label>
+                        <select
+                          id="modal-demo-industry"
+                          className="form-input form-select"
+                          value={demoForm.industry}
+                          onChange={(e) => setDemoForm({ ...demoForm, industry: e.target.value })}
+                        >
+                          <option value="Automobile">Automobile</option>
+                          <option value="Logistics">Logistics</option>
+                          <option value="Consumer Goods">Consumer Goods</option>
+                          <option value="Pharmaceutical">Pharmaceutical</option>
+                          <option value="Wealth Management">Wealth Management</option>
+                          <option value="Dairy">Dairy Industry</option>
+                        </select>
+                      </div>
+                      <button type="submit" className="btn btn-primary" disabled={demoLoading} style={{ marginTop: '0.5rem', width: '100%' }}>
+                        {demoLoading ? "Authorizing Dashboard..." : "Request Demo"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
